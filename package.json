@@ -21,7 +21,24 @@
         "command": "semanticindex.searchIndex",
         "title": "Search for Selected Text"
       }
-    ]
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "semanticindex.searchIndex",
+          "group": "navigation"
+        }
+      ]
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "similarity",
+          "name": "Similarity",
+          "type": "tree"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
