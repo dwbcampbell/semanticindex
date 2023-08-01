@@ -29,6 +29,8 @@ export async function buildIndex() {
         new OpenAIEmbeddings()
     );
 
+    // Save the index to the extension context storage
+
     const context = await vscode.commands.executeCommand("getContext") as vscode.ExtensionContext;
 
     if (!context.storageUri) {
