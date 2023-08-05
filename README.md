@@ -31,9 +31,9 @@ If you encounter any bugs or have feature requests, please file them in the [iss
 
 ## Release Notes
 
-### 1.0.0
+### 0.1.0
 
-Initial release of VectorSearch.
+Initial release of Semantic Index
 
 ## Contributors
 

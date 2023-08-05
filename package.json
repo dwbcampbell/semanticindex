@@ -1,8 +1,8 @@
 {
   "name": "semanticindex",
-  "displayName": "semanticindex",
-  "description": "A Semantic Index",
-  "version": "0.0.1",
+  "displayName": "Semantic Index",
+  "description": "Manages a semantic index of text files in a project",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.80.0"
   },
