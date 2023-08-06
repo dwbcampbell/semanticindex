@@ -30,6 +30,10 @@
       {
         "command": "semanticindex.searchIndex",
         "title": "Search for Selected Text"
+      },
+      {
+        "command": "semanticindex.deleteIndex",
+        "title": "Delete Vector Index"
       }
     ],
     "menus": {

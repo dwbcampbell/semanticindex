@@ -8,11 +8,16 @@ import { SearchResult, SearchResultProvider } from './resultProvider';
 const { DirectoryLoader } = require('langchain/document_loaders/fs/directory');
 const { TextLoader } = require('langchain/document_loaders/fs/text');
 
-let vectorStore: FaissStore;
+var vectorStore: FaissStore | null = null;
 
 export async function buildIndex() {
 
-    const workspaceFolder = vscode.workspace.workspaceFolders![0].uri.fsPath;
+    if (vscode.workspace.workspaceFolders === undefined) {
+        vscode.window.showErrorMessage('No workspace open');
+        return;
+    }
+
+    const workspaceFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
     
     const loader = new DirectoryLoader(
         workspaceFolder,
@@ -33,22 +38,38 @@ export async function buildIndex() {
 
     const context = await vscode.commands.executeCommand("getContext") as vscode.ExtensionContext;
 
-    if (!context.storageUri) {
+    if (context.storageUri === undefined) {
       return;
     }
 
     vectorStore.save(context.storageUri.fsPath + "/index.faiss");
 
-    console.log(context.storageUri.fsPath);
+    console.log("Saving index: " + context.storageUri.fsPath);
 
     vscode.window.showInformationMessage('Index built!');
 }
     
 export async function searchIndex(provider: SearchResultProvider) {
 
-    if (!vectorStore) {
-        vscode.window.showErrorMessage('Cannot search -- Ιndex not built');
-        return;
+    if (vectorStore === null) {
+        const context = await vscode.commands.executeCommand("getContext") as vscode.ExtensionContext;
+
+        if (context.storageUri === undefined) {
+            vscode.window.showErrorMessage('Ιndex not built for this workspace');
+            return;
+        }
+
+        // if index file exists, load it
+        const indexFile = context.storageUri.fsPath + "/index.faiss";
+
+        try {
+            await vscode.workspace.fs.stat(vscode.Uri.file(indexFile));
+            vectorStore = await FaissStore.load(indexFile, new OpenAIEmbeddings());
+        }
+        catch (e) {
+            vscode.window.showErrorMessage('Ιndex not built for this workspace');
+            return;
+        }
     }
       
     const editor = vscode.window.activeTextEditor;
@@ -65,5 +86,35 @@ export async function searchIndex(provider: SearchResultProvider) {
         } else {
             vscode.window.showErrorMessage('No text selected');
         }
+    }
+}
+
+export async function deleteIndex(provider: SearchResultProvider) {
+    const context = await vscode.commands.executeCommand("getContext") as vscode.ExtensionContext;
+
+    if (context.storageUri === undefined) {
+        vscode.window.showErrorMessage('Ιndex not built for this workspace');
+        return;
+    }
+
+    // if index file exists, delete it
+    const indexFile = context.storageUri.fsPath + "/index.faiss";
+
+    try {
+        console.log("Deleting index: " + indexFile);
+        await vscode.workspace.fs.stat(vscode.Uri.file(indexFile));
+
+        await vscode.workspace.fs.delete(vscode.Uri.file(indexFile), {recursive: true});
+
+        vectorStore = null;
+
+        if (provider) {
+            provider.setItems([]);
+        }
+
+        vscode.window.showInformationMessage('Index deleted!');
+    }
+    catch (e) {
+        vscode.window.showErrorMessage('Ιndex not built for this workspace');
     }
 }
